@@ -1,5 +1,6 @@
 from map_objects.tile import Tile
 from map_objects.rectangle import Rect
+from random import randint
 
 class GameMap:
     def __init__(self, width, height):
@@ -19,16 +20,66 @@ class GameMap:
 
         return tiles
 
-    def make_map(self):
-        #Create 2 rooms for demo
-        room1 = Rect(20, 15, 10, 15)
-        room2 = Rect(35, 15, 10, 15)
+    def make_map(self, max_rooms, room_min_size, room_max_size, map_width, map_height, player, npc):
+        # #Create 2 rooms for demo
+        # room1 = Rect(20, 15, 10, 15)
+        # room2 = Rect(35, 15, 10, 15)
+        #
+        # self.create_room(room1)
+        # self.create_room(room2)
+        #
+        # self.create_h_tunnel(25, 40, 23)
+        rooms = []
+        num_rooms = 0
+        for r in range(max_rooms):
+            #random width and height of room
+            w = randint(room_min_size, room_max_size)
+            h = randint(room_min_size, room_max_size)
 
-        self.create_room(room1)
-        self.create_room(room2)
+            #random position within map bounds
+            x = randint(0, map_width - w - 1)
+            y = randint(0, map_height - h - 1)
 
-        self.create_h_tunnel(25, 40, 23)
+            new_room = Rect(x, y, w, h)
+            #Check if new room intersects with others
+            for other_room in rooms:
+                if new_room.intersect(other_room):
+                    break
+            else:
+                #if room check didnt break, add new room to map tiles
+                self.create_room(new_room)
 
+                #center coord of room
+                (new_x, new_y) = new_room.center()
+
+                if num_rooms == 0:
+                    #if this is first room, player starts here
+                    player.x = new_x
+                    player.y = new_y
+
+                #placing npc in seconfd room
+                elif num_rooms == 1:
+                    npc.x = new_x
+                    npc.y = new_y
+
+                else:
+                    # for all rooms after first, connect to previous room with tunnel
+                    #center coords of prev room
+                    (prev_x, prev_y) = rooms[num_rooms - 1].center()
+
+                    #Flip a coin
+                    if randint (0, 1) == 1:
+                        #First move horizontally, then vertically
+                        self.create_h_tunnel(prev_x, new_x, prev_y)
+                        self.create_v_tunnel(prev_y, new_y, new_x)
+                    else:
+                        #or vice versa
+                        self.create_h_tunnel(prev_x, new_x, new_y)
+                        self.create_v_tunnel(prev_y, new_y, prev_x)
+
+                #Finally, append new room to list
+                rooms.append(new_room)
+                num_rooms += 1
 
     def create_room(self, room):
         #Walk through tiles in the given rectangle and make them passable
