@@ -57,10 +57,10 @@ class GameMap:
                     player.x = new_x
                     player.y = new_y
 
-                #placing npc in seconfd room
-                elif num_rooms == 1:
-                    npc.x = new_x
-                    npc.y = new_y
+                # #placing npc in seconfd room
+                # elif num_rooms == 1:
+                #     npc.x = new_x
+                #     npc.y = new_y
 
                 else:
                     # for all rooms after first, connect to previous room with tunnel

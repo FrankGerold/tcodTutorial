@@ -33,7 +33,7 @@ def main():
 
     tcod.console_set_custom_font('arial10x10.png', tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD)
 
-    tcod.console_init_root(screen_width, screen_height, 'libtcod tutorial revised', False)
+    tcod.console_init_root(screen_width, screen_height, 'Bluntlike', False)
 
     con = tcod.console_new(screen_width, screen_height)
 
