@@ -5,6 +5,8 @@ from render_functions import clear_all, render_all
 from map_objects.game_map import GameMap
 from fov_functions import initialize_fov, recompute_fov
 from game_states import GameStates
+from components.fighter import Fighter
+from components.ai import BasicMonster
 
 def main():
     print('Suhh dude')
@@ -30,8 +32,12 @@ def main():
         'light_wall': tcod.Color(51, 0, 102),
         'light_ground': tcod.Color(51, 51, 102)
     }
-    player = Entity(int(screen_width / 2), int(screen_height / 2), '@', tcod.red, 'Player', True)
-    npc = Entity(int(screen_width / 2 - 5), int(screen_height / 2), '@', tcod.blue, 'Rando', True)
+
+    fighter_component = Fighter(hp=10, defense=0, power=3)
+    ai_component=BasicMonster()
+
+    player = Entity(int(screen_width / 2), int(screen_height / 2), '@', tcod.red, 'Player', blocks=True, fighter=fighter_component)
+    npc = Entity(int(screen_width / 2 - 5), int(screen_height / 2), '@', tcod.blue, 'Rando', blocks=True, fighter=fighter_component, ai=ai_component)
     entities = [player, npc]
 
     tcod.console_set_custom_font('arial10x10.png', tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD)
@@ -95,8 +101,10 @@ def main():
 
         if game_state ==GameStates.ENEMY_TURN:
             for entity in entities:
-                if entity != player:
-                    print('The ' + entity.name + ' ponders the meaning of its existence.')
+                # if entity != player:
+                if entity.ai:
+                    # print('The ' + entity.name + ' ponders the meaning of its existence.')
+                    entity.ai.take_turn(player, fov_map, game_map, entities)
 
             game_state = GameStates.PLAYER_TURN
 

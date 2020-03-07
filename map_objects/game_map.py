@@ -3,6 +3,8 @@ from map_objects.rectangle import Rect
 from random import randint
 import tcod
 from entity import Entity
+from components.ai import BasicMonster
+from components.fighter import Fighter
 
 class GameMap:
     def __init__(self, width, height):
@@ -114,10 +116,14 @@ class GameMap:
             if not any([entity for entity in entities if entity.x == x and entity.y == y]):
                 # 80% cnance for orc
                 if randint(0, 100) < 80:
-                    monster = Entity(x, y, 'o', tcod.desaturated_green, 'Orc', True)
+                    fighter_component = Fighter(hp=10, defense=0, power=3)
+                    ai_component = BasicMonster()
+                    monster = Entity(x, y, 'o', tcod.desaturated_green, 'Orc', blocks=True, fighter=fighter_component, ai=ai_component)
                 # 20% chance for troll
                 else:
-                    monster = Entity(x, y, 'T', tcod.darker_green, 'Troll', True)
+                    fighter_component = Fighter(hp=16, defense=1, power=4)
+                    ai_component = BasicMonster()
+                    monster = Entity(x, y, 'T', tcod.darker_green, 'Troll', blocks=True, fighter=fighter_component, ai=ai_component)
 
                 entities.append(monster)
 
