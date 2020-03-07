@@ -1,12 +1,13 @@
 import tcod
 from input_handlers import handle_keys
 from entity import Entity, get_blocking_entities_at_location
-from render_functions import clear_all, render_all
+from render_functions import clear_all, render_all, RenderOrder
 from map_objects.game_map import GameMap
 from fov_functions import initialize_fov, recompute_fov
 from game_states import GameStates
 from components.fighter import Fighter
 from components.ai import BasicMonster
+from death_functions import kill_player, kill_monster
 
 def main():
     print('Suhh dude')
@@ -36,7 +37,7 @@ def main():
     fighter_component = Fighter(hp=10, defense=0, power=3)
     ai_component=BasicMonster()
 
-    player = Entity(int(screen_width / 2), int(screen_height / 2), '@', tcod.red, 'Player', blocks=True, fighter=fighter_component)
+    player = Entity(int(screen_width / 2), int(screen_height / 2), '@', tcod.red, 'Player', blocks=True, fighter=fighter_component, render_order=RenderOrder.ACTOR)
     npc = Entity(int(screen_width / 2 - 5), int(screen_height / 2), '@', tcod.blue, 'Rando', blocks=True, fighter=fighter_component, ai=ai_component)
     entities = [player, npc]
 
@@ -67,7 +68,7 @@ def main():
         # tcod.console_set_default_foreground(con, tcod.red)
         # tcod.console_put_char(con, player.x, player.y, '@', tcod.BKGND_NONE)
         # tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
-        render_all(con, entities, game_map, fov_map, fov_recompute, screen_width, screen_height, colors)
+        render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, colors)
         fov_recompute = False
         tcod.console_flush()
 
@@ -81,6 +82,8 @@ def main():
         exit = action.get('exit')
         fullscreen = action.get('fullscreen')
 
+        player_turn_results = []
+
         if move and game_state == GameStates.PLAYER_TURN:
             dx, dy = move
             destination_x = player.x + dx
@@ -90,7 +93,9 @@ def main():
                 target = get_blocking_entities_at_location(entities, destination_x, destination_y)
 
                 if target:
-                    print('You kick the ' + target.name + ' in the face!')
+                    # print('You kick the ' + target.name + ' in the face!')
+                    attack_results = player.fighter.attack(target)
+                    player_turn_results.extend(attack_results)
 
                 else:
                     player.move(dx, dy)
@@ -99,14 +104,51 @@ def main():
 
                 game_state = GameStates.ENEMY_TURN
 
-        if game_state ==GameStates.ENEMY_TURN:
+        for player_turn_result in player_turn_results:
+            message = player_turn_result.get('message')
+            dead_entity = player_turn_result.get('dead')
+
+            if message:
+                print(message)
+
+            if dead_entity:
+                if dead_entity == player:
+                    message, game_state = kill_player(dead_entity)
+                else:
+                    message = kill_monster(dead_entity)
+
+                print(message)
+
+        if game_state == GameStates.ENEMY_TURN:
             for entity in entities:
                 # if entity != player:
                 if entity.ai:
                     # print('The ' + entity.name + ' ponders the meaning of its existence.')
-                    entity.ai.take_turn(player, fov_map, game_map, entities)
+                    enemy_turn_results = entity.ai.take_turn(player, fov_map, game_map, entities)
 
-            game_state = GameStates.PLAYER_TURN
+                    for result in enemy_turn_results:
+                        message = result.get('message')
+                        dead_entity = result.get('dead')
+
+                        if message:
+                            print(message)
+
+                        if dead_entity:
+                            if dead_entity == player:
+                                message, game_state = kill_player(dead_entity)
+                            else:
+                                message = kill_monster(dead_entity)
+
+                            print(message)
+
+                            if game_state == GameStates.PLAYER_DEAD:
+                                break
+
+                    if game_state == GameStates.PLAYER_DEAD:
+                        break
+
+            else :
+                game_state = GameStates.PLAYER_TURN
 
         if exit:
             return True

@@ -1,11 +1,12 @@
 import math
 import tcod
+from render_functions import RenderOrder
 
 class Entity:
     """
     A generic object to represent players, enemies, items, etc.
     """
-    def __init__(self, x, y, char, color, name, blocks=False, fighter=None, ai=None):
+    def __init__(self, x, y, char, color, name, blocks=False, fighter=None, ai=None, render_order=RenderOrder.CORPSE):
         self.x = x
         self.y = y
         self.char = char
@@ -14,6 +15,7 @@ class Entity:
         self.blocks = blocks
         self.fighter = fighter
         self.ai = ai
+        self.render_order = render_order
 
         if self.fighter:
             self.fighter.owner = self
