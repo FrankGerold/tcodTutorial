@@ -1,7 +1,7 @@
 import tcod
 from input_handlers import handle_keys
 from entity import Entity, get_blocking_entities_at_location
-from render_functions import clear_all, render_all, RenderOrder
+from render_functions import clear_all, render_all, RenderOrder, render_bar
 from map_objects.game_map import GameMap
 from fov_functions import initialize_fov, recompute_fov
 from game_states import GameStates
@@ -15,7 +15,11 @@ def main():
     screen_width = 80
     screen_height = 50
     map_width = 80
-    map_height = 45
+    map_height = 43
+
+    bar_width = 20
+    panel_height = 7
+    panel_y = screen_height - panel_height
 
     room_max_size = 10
     room_min_size = 6
@@ -38,14 +42,16 @@ def main():
     ai_component=BasicMonster()
 
     player = Entity(int(screen_width / 2), int(screen_height / 2), '@', tcod.red, 'Player', blocks=True, fighter=fighter_component, render_order=RenderOrder.ACTOR)
-    npc = Entity(int(screen_width / 2 - 5), int(screen_height / 2), '@', tcod.blue, 'Rando', blocks=True, fighter=fighter_component, ai=ai_component)
-    entities = [player, npc]
+    # npc = Entity(int(screen_width / 2 - 5), int(screen_height / 2), '@', tcod.blue, 'Rando', blocks=True, fighter=fighter_component, ai=ai_component)
+    # entities = [player, npc]
+    entities = [player]
 
     tcod.console_set_custom_font('arial10x10.png', tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD)
 
     tcod.console_init_root(screen_width, screen_height, 'Bluntlike', False)
 
     con = tcod.console_new(screen_width, screen_height)
+    panel = tcod.console_new(screen_width, panel_height)
 
     game_map = GameMap(map_width, map_height)
     game_map.make_map(max_rooms, room_min_size, room_max_size, map_width, map_height, player, entities, max_monsters_per_room)
@@ -68,7 +74,7 @@ def main():
         # tcod.console_set_default_foreground(con, tcod.red)
         # tcod.console_put_char(con, player.x, player.y, '@', tcod.BKGND_NONE)
         # tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
-        render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, colors)
+        render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, colors, panel, bar_width, panel_height, panel_y)
         fov_recompute = False
         tcod.console_flush()
 
