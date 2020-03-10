@@ -6,6 +6,8 @@ from entity import Entity
 from components.ai import BasicMonster
 from components.fighter import Fighter
 from render_functions import RenderOrder
+from components.item import Item
+from components.inventory import Inventory
 
 class GameMap:
     def __init__(self, width, height):
@@ -120,12 +122,16 @@ class GameMap:
                 if randint(0, 100) < 80:
                     fighter_component = Fighter(hp=10, defense=0, power=3)
                     ai_component = BasicMonster()
-                    monster = Entity(x, y, 'o', tcod.desaturated_green, 'Orc', blocks=True, fighter=fighter_component, ai=ai_component, render_order=RenderOrder.ACTOR)
+                    inventory_component = Inventory(3)
+
+                    monster = Entity(x, y, 'o', tcod.desaturated_green, 'Orc', blocks=True, fighter=fighter_component, ai=ai_component, render_order=RenderOrder.ACTOR, inventory=inventory_component)
                 # 20% chance for troll
                 else:
                     fighter_component = Fighter(hp=16, defense=1, power=4)
                     ai_component = BasicMonster()
-                    monster = Entity(x, y, 'T', tcod.darker_green, 'Troll', blocks=True, fighter=fighter_component, ai=ai_component, render_order=RenderOrder.ACTOR)
+                    inventory_component = Inventory(5)
+
+                    monster = Entity(x, y, 'T', tcod.darker_green, 'Troll', blocks=True, fighter=fighter_component, ai=ai_component, render_order=RenderOrder.ACTOR, inventory=inventory_component)
 
                 entities.append(monster)
 
@@ -134,7 +140,9 @@ class GameMap:
             y = randint(room.y1 + 1, room.y2 - 1)
 
             if not any([entity for entity in entities if entity.x == x and entity.y == y]):
-                item = Entity(x, y, '!', tcod.pink, 'Health Potion', render_order=RenderOrder.ITEM)
+                item_component = Item()
+
+                item = Entity(x, y, '!', tcod.pink, 'Health Potion', render_order=RenderOrder.ITEM, item=item_component)
                 entities.append(item)
 
     def is_blocked(self, x, y):

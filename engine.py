@@ -8,7 +8,8 @@ from game_states import GameStates
 from components.fighter import Fighter
 from components.ai import BasicMonster
 from death_functions import kill_player, kill_monster
-from game_messages import MessageLog
+from game_messages import MessageLog, Message
+from components.inventory import Inventory
 
 def main():
     print('Suhh dude')
@@ -48,8 +49,9 @@ def main():
 
     fighter_component = Fighter(hp=10, defense=0, power=3)
     ai_component=BasicMonster()
+    inventory_component = Inventory(16)
 
-    player = Entity(int(screen_width / 2), int(screen_height / 2), '@', tcod.red, 'Player', blocks=True, fighter=fighter_component, render_order=RenderOrder.ACTOR)
+    player = Entity(int(screen_width / 2), int(screen_height / 2), '@', tcod.red, 'Player', blocks=True, fighter=fighter_component, render_order=RenderOrder.ACTOR, inventory=inventory_component)
     # npc = Entity(int(screen_width / 2 - 5), int(screen_height / 2), '@', tcod.blue, 'Rando', blocks=True, fighter=fighter_component, ai=ai_component)
     # entities = [player, npc]
     entities = [player]
@@ -97,6 +99,7 @@ def main():
         move = action.get('move')
         exit = action.get('exit')
         fullscreen = action.get('fullscreen')
+        pickup = action.get('pickup')
 
         player_turn_results = []
 
@@ -120,9 +123,21 @@ def main():
 
                 game_state = GameStates.ENEMY_TURN
 
+        elif pickup and game_state == GameStates.PLAYER_TURN:
+            for entity in entities:
+                if entity.item and entity.x == player.x and entity.y == player.y:
+                    pickup_results = player.inventory.add_item(entity)
+                    player_turn_results.extend(pickup_results)
+
+                    break
+
+            else:
+                message_log.add_message(Message('There is nothing here to pick up.', tcod.yellow))
+
         for player_turn_result in player_turn_results:
             message = player_turn_result.get('message')
             dead_entity = player_turn_result.get('dead')
+            item_added = player_turn_result.get('item_added')
 
             if message:
                 message_log.add_message(message)
@@ -134,6 +149,10 @@ def main():
                     message = kill_monster(dead_entity)
 
                 message_log.add_message(message)
+
+            if item_added:
+                entities.remove(item_added)
+                game_state = GameStates.ENEMY_TURN
 
         if game_state == GameStates.ENEMY_TURN:
             for entity in entities:
