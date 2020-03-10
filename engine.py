@@ -73,6 +73,7 @@ def main():
     mouse = tcod.Mouse()
 
     game_state = GameStates.PLAYER_TURN
+    previous_game_state = game_state
 
     while not tcod.console_is_window_closed():
         tcod.sys_check_for_event(tcod.EVENT_KEY_PRESS | tcod.EVENT_MOUSE, key, mouse)
@@ -84,7 +85,7 @@ def main():
         # tcod.console_set_default_foreground(con, tcod.red)
         # tcod.console_put_char(con, player.x, player.y, '@', tcod.BKGND_NONE)
         # tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
-        render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, colors, panel, bar_width, panel_height, panel_y, message_log, mouse)
+        render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, colors, panel, bar_width, panel_height, panel_y, message_log, mouse, game_state)
         fov_recompute = False
         tcod.console_flush()
 
@@ -98,6 +99,7 @@ def main():
         exit = action.get('exit')
         fullscreen = action.get('fullscreen')
         pickup = action.get('pickup')
+        show_inventory = action.get('show_inventory')
 
         player_turn_results = []
 
@@ -131,6 +133,10 @@ def main():
 
             else:
                 message_log.add_message(Message('There is nothing here to pick up.', tcod.yellow))
+
+        if show_inventory:
+            previous_game_state = game_state
+            game_state = GameStates.SHOW_INVENTORY
 
         for player_turn_result in player_turn_results:
             message = player_turn_result.get('message')
@@ -184,7 +190,10 @@ def main():
                 game_state = GameStates.PLAYER_TURN
 
         if exit:
-            return True
+            if game_state == GameStates.SHOW_INVENTORY:
+                game_state == previous_game_state
+            else:
+                return True
 
         if fullscreen:
             tcod.console_set_fullscreen(not tcod.console_is_fullscreen())

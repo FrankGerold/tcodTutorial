@@ -1,6 +1,8 @@
 import tcod
 from enum import Enum, auto
 from game_messages import Message
+from game_states import GameStates
+from menus import inventory_menu
 
 class RenderOrder(Enum):
     CORPSE = auto()
@@ -27,7 +29,7 @@ def render_bar(panel, x, y, total_width, name, value, maximum, bar_color, back_c
     tcod.console_set_default_foreground(panel, tcod.white)
     tcod.console_print_ex(panel, int(x + total_width / 2), y, tcod.BKGND_NONE, tcod.CENTER, '{0}: {1}/{2}'.format(name, value, maximum))
 
-def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, colors, panel, bar_width, panel_height, panel_y, message_log, mouse):
+def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, colors, panel, bar_width, panel_height, panel_y, message_log, mouse, game_state):
     if fov_recompute:
     #Draw the tiles in the map
         for y in range(game_map.height):
@@ -48,32 +50,35 @@ def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_w
                     else:
                         tcod.console_set_char_background(con, x, y, colors.get('dark_ground'), tcod.BKGND_SET)
 
-        #Draw all entities on list
-        entities_in_render_order = sorted(entities, key=lambda x: x.render_order.value)
-        for entity in entities_in_render_order:
-            draw_entity(con, entity, fov_map)
+    #Draw all entities on list
+    entities_in_render_order = sorted(entities, key=lambda x: x.render_order.value)
+    for entity in entities_in_render_order:
+        draw_entity(con, entity, fov_map)
 
-        # tcod.console_set_default_foreground(con, tcod.white)
-        # tcod.console_print_ex(con, 1, screen_height - 2, tcod.BKGND_NONE, tcod.LEFT, 'HP: {0:02}/{1:02}'.format(player.fighter.hp, player.fighter.max_hp))
+    # tcod.console_set_default_foreground(con, tcod.white)
+    # tcod.console_print_ex(con, 1, screen_height - 2, tcod.BKGND_NONE, tcod.LEFT, 'HP: {0:02}/{1:02}'.format(player.fighter.hp, player.fighter.max_hp))
 
-        tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
+    tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
 
-        tcod.console_set_default_background(panel, tcod.black)
-        tcod.console_clear(panel)
+    tcod.console_set_default_background(panel, tcod.black)
+    tcod.console_clear(panel)
 
-        #Print game messages
-        y = 1
-        for message in message_log.messages:
-            tcod.console_set_default_foreground(panel, message.color)
-            tcod.console_print_ex(panel, message_log.x, y, tcod.BKGND_NONE, tcod.LEFT, message.text)
-            y+= 1
+    #Print game messages
+    y = 1
+    for message in message_log.messages:
+        tcod.console_set_default_foreground(panel, message.color)
+        tcod.console_print_ex(panel, message_log.x, y, tcod.BKGND_NONE, tcod.LEFT, message.text)
+        y+= 1
 
-        render_bar(panel, 1, 1, bar_width, 'HP', player.fighter.hp, player.fighter.max_hp, tcod.light_red, tcod.darker_red)
+    render_bar(panel, 1, 1, bar_width, 'HP', player.fighter.hp, player.fighter.max_hp, tcod.light_red, tcod.darker_red)
 
-        tcod.console_set_default_foreground(panel, tcod.light_gray)
-        tcod.console_print_ex(panel, 1, 0, tcod.BKGND_NONE, tcod.LEFT, get_names_under_mouse(mouse, entities, fov_map))
+    tcod.console_set_default_foreground(panel, tcod.light_gray)
+    tcod.console_print_ex(panel, 1, 0, tcod.BKGND_NONE, tcod.LEFT, get_names_under_mouse(mouse, entities, fov_map))
 
-        tcod.console_blit(panel, 0, 0, screen_width, panel_height, 0, 0, panel_y)
+    tcod.console_blit(panel, 0, 0, screen_width, panel_height, 0, 0, panel_y)
+
+    if game_state == GameStates.SHOW_INVENTORY:
+        inventory_menu(con, 'Press the key next to an item to use it, or Esc to cancel.\n', player.inventory, 50, screen_width, screen_height)
 
 def clear_all(con, entities):
     for entity in entities:
