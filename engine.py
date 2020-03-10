@@ -34,8 +34,6 @@ def main():
     max_monsters_per_room = 3
     max_items_per_room = 3
 
-
-
     fov_algorithm = 0
     fov_light_walls = True
     fov_radius = 10
@@ -47,9 +45,9 @@ def main():
         'light_ground': tcod.Color(51, 51, 102)
     }
 
-    fighter_component = Fighter(hp=10, defense=0, power=3)
+    fighter_component = Fighter(hp=12, defense=1, power=5)
     ai_component=BasicMonster()
-    inventory_component = Inventory(16)
+    inventory_component = Inventory(8)
 
     player = Entity(int(screen_width / 2), int(screen_height / 2), '@', tcod.red, 'Player', blocks=True, fighter=fighter_component, render_order=RenderOrder.ACTOR, inventory=inventory_component)
     # npc = Entity(int(screen_width / 2 - 5), int(screen_height / 2), '@', tcod.blue, 'Rando', blocks=True, fighter=fighter_component, ai=ai_component)
