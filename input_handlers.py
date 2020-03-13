@@ -1,19 +1,19 @@
 import tcod
 from game_states import GameStates
 
-def handle_keys(key, game_state, previous_game_state):
+def handle_keys(key, game_state):
     if game_state == GameStates.PLAYER_TURN:
-        return handle_player_keys(key, game_state, previous_game_state)
+        return handle_player_keys(key)
 
     elif game_state == GameStates.PLAYER_DEAD:
-        return handle_dead_keys(key, game_state, previous_game_state)
+        return handle_dead_keys(key)
 
-    elif game_state == GameStates.SHOW_INVENTORY:
-        return handle_inventory_keys(key, game_state, previous_game_state)
+    elif game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY):
+        return handle_inventory_keys(key)
 
     return {}
 
-def handle_player_keys(key, game_state, previous_game_state):
+def handle_player_keys(key):
     key_char = chr(key.c)
 
     # Movement Keys
@@ -47,6 +47,9 @@ def handle_player_keys(key, game_state, previous_game_state):
     elif key_char == 'i':
         return {'show_inventory': True}
 
+    elif key_char == 'd':
+        return {'drop_inventory': True}
+
     if key.vk == tcod.KEY_ENTER and key.lalt:
         # Alt + Enter toggles full screen
         return {'fullscreen': True}
@@ -61,7 +64,7 @@ def handle_player_keys(key, game_state, previous_game_state):
     # No key pressed
     return {}
 
-def handle_dead_keys(key, game_state, previous_game_state):
+def handle_dead_keys(key):
     key_char = chr(key.c)
 
     if key_char == 'i':
@@ -78,7 +81,7 @@ def handle_dead_keys(key, game_state, previous_game_state):
 
     return {}
 
-def handle_inventory_keys(key, game_state, previous_game_state):
+def handle_inventory_keys(key):
     key_char = chr(key.c)
     index = key.c - ord('a')
 
