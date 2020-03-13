@@ -93,13 +93,14 @@ def main():
         # tcod.console_put_char(con, player.x, player.y, ' ', tcod.BKGND_NONE)
         clear_all(con, entities) #removes character trails
 
-        action = handle_keys(key)
+        action = handle_keys(key, game_state, previous_game_state)
 
         move = action.get('move')
         exit = action.get('exit')
         fullscreen = action.get('fullscreen')
         pickup = action.get('pickup')
         show_inventory = action.get('show_inventory')
+        inventory_index = action.get('inventory_index')
 
         player_turn_results = []
 
@@ -137,6 +138,10 @@ def main():
         if show_inventory:
             previous_game_state = game_state
             game_state = GameStates.SHOW_INVENTORY
+
+        if inventory_index is not None and previous_game_state != GameStates.PLAYER_DEAD and inventory_index < len(player.inventory.items):
+            item = player.inventory.items[inventory_index]
+            print(item)
 
         for player_turn_result in player_turn_results:
             message = player_turn_result.get('message')
@@ -191,7 +196,7 @@ def main():
 
         if exit:
             if game_state == GameStates.SHOW_INVENTORY:
-                game_state == previous_game_state
+                game_state = previous_game_state
             else:
                 return True
 
