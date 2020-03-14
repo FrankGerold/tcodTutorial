@@ -56,6 +56,9 @@ class Entity:
         dy = other.y - self.y
         return math.sqrt(dx ** 2 + dy ** 2)
 
+    def distance(self, x, y):
+        return math.sqrt((x-self.x) ** 2 + (y - self.y) ** 2)
+
     # A* Search Algorithm - O(b^d) space and performance complexity
     def move_astar(self, target, entities, game_map):
         #Generate FOV map with same dimensions as game map
