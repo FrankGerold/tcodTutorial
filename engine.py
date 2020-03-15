@@ -1,78 +1,32 @@
 import tcod
 from input_handlers import handle_keys, handle_mouse
-from entity import Entity, get_blocking_entities_at_location
-from render_functions import clear_all, render_all, RenderOrder, render_bar
-from map_objects.game_map import GameMap
+from entity import get_blocking_entities_at_location
+from render_functions import clear_all, render_all
 from fov_functions import initialize_fov, recompute_fov
 from game_states import GameStates
-from components.fighter import Fighter
-from components.ai import BasicMonster
 from death_functions import kill_player, kill_monster
-from game_messages import MessageLog, Message
-from components.inventory import Inventory
+from game_messages import Message
+from loader_functions.initialize_new_game import get_constants, get_game_variables
 
 def main():
     print('Suhh dude')
 
-    screen_width = 80
-    screen_height = 50
-    map_width = 80
-    map_height = 43
-
-    bar_width = 20
-    panel_height = 7
-    panel_y = screen_height - panel_height
-
-    message_x = bar_width + 2
-    message_width = screen_width - bar_width - 2
-    message_height = panel_height - 1
-
-    room_max_size = 10
-    room_min_size = 6
-    max_rooms = 30
-
-    max_monsters_per_room = 3
-    max_items_per_room = 5
-
-    fov_algorithm = 0
-    fov_light_walls = True
-    fov_radius = 10
-
-    colors = {
-        'dark_wall': tcod.Color(0, 0, 102),
-        'dark_ground': tcod.Color(0, 51, 102),
-        'light_wall': tcod.Color(51, 0, 102),
-        'light_ground': tcod.Color(51, 51, 102)
-    }
-
-    fighter_component = Fighter(hp=12, defense=3, power=5)
-    ai_component=BasicMonster()
-    inventory_component = Inventory(8)
-
-    player = Entity(int(screen_width / 2), int(screen_height / 2), '@', tcod.red, 'Player', blocks=True, fighter=fighter_component, render_order=RenderOrder.ACTOR, inventory=inventory_component)
-    # npc = Entity(int(screen_width / 2 - 5), int(screen_height / 2), '@', tcod.blue, 'Rando', blocks=True, fighter=fighter_component, ai=ai_component)
-    # entities = [player, npc]
-    entities = [player]
+    constants = get_constants()
+    player, entities, game_map, message_log, game_state = get_game_variables(constants)
 
     tcod.console_set_custom_font('arial10x10.png', tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD)
 
-    tcod.console_init_root(screen_width, screen_height, 'Bluntlike', False)
+    tcod.console_init_root(constants['screen_width'], constants['screen_height'], 'Bluntlike', False)
 
-    con = tcod.console_new(screen_width, screen_height)
-    panel = tcod.console_new(screen_width, panel_height)
-
-    game_map = GameMap(map_width, map_height)
-    game_map.make_map(max_rooms, room_min_size, room_max_size, map_width, map_height, player, entities, max_monsters_per_room, max_items_per_room)
+    con = tcod.console_new(constants['screen_width'], constants['screen_height'])
+    panel = tcod.console_new(constants['screen_width'], constants['panel_height'])
 
     fov_recompute = True
     fov_map = initialize_fov(game_map)
 
-    message_log = MessageLog(message_x, message_width, message_height)
-
     key = tcod.Key()
     mouse = tcod.Mouse()
 
-    game_state = GameStates.PLAYER_TURN
     previous_game_state = game_state
 
     targeting_item = None
@@ -81,13 +35,17 @@ def main():
         tcod.sys_check_for_event(tcod.EVENT_KEY_PRESS | tcod.EVENT_MOUSE, key, mouse)
 
         if fov_recompute:
-            recompute_fov(fov_map, player.x, player.y, fov_radius)
+            recompute_fov(fov_map, player.x, player.y, constants['fov_radius'])
 
         # Old, Single render
         # tcod.console_set_default_foreground(con, tcod.red)
         # tcod.console_put_char(con, player.x, player.y, '@', tcod.BKGND_NONE)
-        # tcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
-        render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, colors, panel, bar_width, panel_height, panel_y, message_log, mouse, game_state)
+        # tcod.console_blit(con, 0, 0, constants['screen_width'], constants['screen_height'], 0, 0, 0)
+        render_all(con, entities, player, game_map, fov_map, fov_recompute,
+                   constants['screen_width'], constants['screen_height'],
+                   constants['colors'], panel, constants['bar_width'],
+                             constants['panel_height'], constants['panel_y'],
+                             message_log, mouse, game_state)
         fov_recompute = False
         tcod.console_flush()
 
