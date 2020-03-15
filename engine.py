@@ -1,5 +1,5 @@
 import tcod
-from input_handlers import handle_keys, handle_mouse
+from input_handlers import handle_keys, handle_mouse, handle_main_menu
 from entity import get_blocking_entities_at_location
 from render_functions import clear_all, render_all
 from fov_functions import initialize_fov, recompute_fov
@@ -7,12 +7,14 @@ from game_states import GameStates
 from death_functions import kill_player, kill_monster
 from game_messages import Message
 from loader_functions.initialize_new_game import get_constants, get_game_variables
+from menus import main_menu, message_box
+from loader_functions.data_loaders import load_game, save_game
+
 
 def main():
     print('Suhh dude')
 
     constants = get_constants()
-    player, entities, game_map, message_log, game_state = get_game_variables(constants)
 
     tcod.console_set_custom_font('arial10x10.png', tcod.FONT_TYPE_GREYSCALE | tcod.FONT_LAYOUT_TCOD)
 
@@ -21,12 +23,72 @@ def main():
     con = tcod.console_new(constants['screen_width'], constants['screen_height'])
     panel = tcod.console_new(constants['screen_width'], constants['panel_height'])
 
+    player = None
+    entities = []
+    game_map = None
+    message_log = None
+    game_state = None
+
+    show_main_menu = True
+    show_load_error_message = False
+    main_menu_background_image = tcod.image_load('menu_background.png')
+
+    key = tcod.Key()
+    mouse = tcod.Mouse()
+
+    while not tcod.console_is_window_closed():
+        tcod.sys_check_for_event(tcod.EVENT_KEY_PRESS | tcod.EVENT_MOUSE, key, mouse)
+
+        if show_main_menu:
+            main_menu(con, main_menu_background_image, constants['screen_width'],
+                      constants['screen_height'])
+
+            if show_load_error_message:
+                message_box(con, 'No saves available', 50, constants['screen_width'],
+                      constants['screen_height'])
+
+            tcod.console_flush()
+
+            action = handle_main_menu(key)
+
+            new_game = action.get('new_game')
+            load_saved_game = action.get('load_saved_game')
+            exit_game = action.get('exit_game')
+
+            if show_load_error_message and (new_game or load_saved_game or exit_game):
+                show_load_error_message = False
+
+            elif new_game:
+                player, entities, game_map, message_log, game_state = get_game_variables(constants)
+                game_state = GameStates.PLAYER_TURN
+
+                show_main_menu = False
+
+            elif load_saved_game:
+                try:
+                    player, entities, game_map, message_log, game_state = load_game()
+
+                    show_main_menu = False
+                except FileNotFoundError:
+                    show_load_error_message = True
+
+            elif exit_game:
+                break
+
+        else:
+            tcod.console_clear(con)
+            play_game(player, entities, game_map, message_log, game_state, con, panel, constants)
+
+            show_main_menu = True
+
+def play_game(player, entities, game_map, message_log, game_state, con, panel, constants):
     fov_recompute = True
     fov_map = initialize_fov(game_map)
 
     key = tcod.Key()
     mouse = tcod.Mouse()
 
+    game_state = GameStates.PLAYER_TURN
     previous_game_state = game_state
 
     targeting_item = None
@@ -37,21 +99,17 @@ def main():
         if fov_recompute:
             recompute_fov(fov_map, player.x, player.y, constants['fov_radius'])
 
-        # Old, Single render
-        # tcod.console_set_default_foreground(con, tcod.red)
-        # tcod.console_put_char(con, player.x, player.y, '@', tcod.BKGND_NONE)
-        # tcod.console_blit(con, 0, 0, constants['screen_width'], constants['screen_height'], 0, 0, 0)
         render_all(con, entities, player, game_map, fov_map, fov_recompute,
                    constants['screen_width'], constants['screen_height'],
                    constants['colors'], panel, constants['bar_width'],
-                             constants['panel_height'], constants['panel_y'],
-                             message_log, mouse, game_state)
+                   constants['panel_height'], constants['panel_y'],
+                   message_log, mouse, game_state)
         fov_recompute = False
         tcod.console_flush()
 
         # Without this, character wouldnt clear after movement, ended up snaking out. this clears previous spot.
         # tcod.console_put_char(con, player.x, player.y, ' ', tcod.BKGND_NONE)
-        clear_all(con, entities) #removes character trails
+        clear_all(con, entities)  # removes character trails
 
         action = handle_keys(key, game_state)
         mouse_action = handle_mouse(mouse)
@@ -104,7 +162,9 @@ def main():
             previous_game_state = game_state
             game_state = GameStates.SHOW_INVENTORY
 
-        if inventory_index is not None and previous_game_state != GameStates.PLAYER_DEAD and inventory_index < len(player.inventory.items):
+        if inventory_index is not None and previous_game_state != \
+                GameStates.PLAYER_DEAD and inventory_index < \
+                len(player.inventory.items):
             item = player.inventory.items[inventory_index]
 
             if game_state == GameStates.SHOW_INVENTORY:
@@ -190,14 +250,18 @@ def main():
                     if game_state == GameStates.PLAYER_DEAD:
                         break
 
-            else :
+            else:
                 game_state = GameStates.PLAYER_TURN
 
         if game_state == GameStates.TARGETING:
             if left_click:
                 target_x, target_y = left_click
 
-                item_use_results = player.inventory.use(targeting_item, entities=entities, fov_map=fov_map, target_x=target_x, target_y=target_y)
+                item_use_results = player.inventory.use(targeting_item,
+                                                        entities=entities,
+                                                        fov_map=fov_map,
+                                                        target_x=target_x,
+                                                        target_y=target_y)
                 player_turn_results.extend(item_use_results)
 
             elif right_click:
@@ -215,6 +279,7 @@ def main():
 
         if fullscreen:
             tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
+
 
 if __name__ == '__main__':
     main()
