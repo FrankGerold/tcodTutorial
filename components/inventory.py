@@ -30,8 +30,8 @@ class Inventory:
         item_component = item_entity.item
 
         if item_component.use_function == None:
-            results.append({'message': Message('Can\'t use {0}!'.format(item_entitiy.name), tcod.yellow)})
-            
+            results.append({'message': Message('Can\'t use {0}!'.format(item_entity.name), tcod.yellow)})
+
         else:
             if item_component.targeting and not (kwargs.get('target_x') or kwargs.get('target_y')):
                 results.append({'targeting': item_entity})

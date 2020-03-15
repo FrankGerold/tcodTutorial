@@ -45,7 +45,7 @@ def main():
         'light_ground': tcod.Color(51, 51, 102)
     }
 
-    fighter_component = Fighter(hp=12, defense=1, power=5)
+    fighter_component = Fighter(hp=12, defense=3, power=5)
     ai_component=BasicMonster()
     inventory_component = Inventory(8)
 
@@ -197,7 +197,7 @@ def main():
 
                 targeting_item = targeting
 
-                message_log.add_message(targeting_item.targeting_message)
+                message_log.add_message(targeting_item.item.targeting_message)
 
             if targeting_cancelled:
                 game_state = previous_game_state

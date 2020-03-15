@@ -1,5 +1,6 @@
 import tcod
 from game_messages import Message
+from components.ai import ConfusedMonster
 
 def heal(*args, **kwargs):
     entity = args[0]
@@ -62,7 +63,34 @@ def fireball(*args, **kwargs):
 
     for entity in entities:
         if entity.distance(target_x, target_y) <= radius and entity.fighter:
-            results.append({'message': Message('The {0} is burned for {1} damage!'.format(entitiy.name, damage), tcod.orange)})
+            results.append({'message': Message('The {0} is burned for {1} damage!'.format(entity.name, damage), tcod.orange)})
             results.extend(entity.fighter.take_damage(damage))
+
+    return results
+
+def confusion(*args, **kwargs):
+    entities = kwargs.get('entities')
+    fov_map = kwargs.get('fov_map')
+    target_x = kwargs.get('target_x')
+    target_y = kwargs.get('target_y')
+
+    results = []
+
+    if not tcod.map_is_in_fov(fov_map, target_x, target_y):
+        results.append({'consumed': False, 'message': Message('Can\'t see target...', tcod.yellow)})
+        return results
+
+    for entity in entities:
+        if entity.x == target_x and entity.y == target_y and entity.ai:
+
+            confused_ai = ConfusedMonster(entity.ai, 10)
+            confused_ai.owner = entity
+            entity.ai = confused_ai
+
+            results.append({'consumed': True, 'message': Message('The {0} starts to move erraticly...'.format(entity.name), tcod.light_green)})
+
+            break
+    else:
+        results.append({'consumed': False, 'message': Message('No enemy at that location!')})
 
     return results

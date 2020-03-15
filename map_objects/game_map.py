@@ -8,7 +8,7 @@ from components.fighter import Fighter
 from render_functions import RenderOrder
 from components.item import Item
 from components.inventory import Inventory
-from item_functions import heal, lightning, fireball
+from item_functions import heal, lightning, fireball, confusion
 from game_messages import Message
 
 class GameMap:
@@ -149,9 +149,13 @@ class GameMap:
 
                     item = Entity(x, y, '!', tcod.violet, 'Health Potion', render_order=RenderOrder.ITEM, item=item_component)
 
-                elif item_chance < 85:
-                    item_component = Item(use_function=fireball, damage=12, radius=3, targeting_message=Message('Click a target tile to cast a Fireball, or right-click to cancel.', tcod.light_cyan))
+                elif item_chance < 80:
+                    item_component = Item(use_function=fireball, damage=12, radius=3, targeting=True, targeting_message=Message('Click a target tile to cast a Fireball, or right-click to cancel.', tcod.light_cyan))
                     item = Entity(x, y, '#', tcod.orange, 'Fireball Scroll', render_order=RenderOrder.ITEM, item=item_component)
+
+                elif item_chance < 90:
+                    item_component = Item(use_function=confusion, targeting=True, targeting_message=Message('Click an enemy to confuse them! Right-click/escape to cancel.', tcod.cyan))
+                    item = Entity(x, y, '#', tcod.light_pink, 'Confusion Scroll', render_order=RenderOrder.ITEM, item=item_component)
 
                 else:
                     item_component = Item(use_function=lightning, damage=20, maximum_range=5)
