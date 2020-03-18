@@ -193,6 +193,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             targeting = player_turn_result.get('targeting')
             targeting_cancelled = player_turn_result.get('targeting_cancelled')
             xp = player_turn_result.get('xp')
+            equip = player_turn_result.get('equip')
 
             if message:
                 message_log.add_message(message)
@@ -234,10 +235,25 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                 message_log.add_message(Message('You gain {0} experience.'.format(xp)))
 
                 if leveled_up:
-                    message_log.add_message(Message('You feel stornget! You have reached level {0}!'.format(player.level.current_level), tcod.yellow))
+                    message_log.add_message(Message('You feel stronger! You have reached level {0}!\
+                                                    '.format(player.level.current_level), tcod.yellow))
                     previous_game_state = game_state
                     game_state = GameStates.LEVEL_UP
 
+            if equip:
+                equip_results = player.equipment.toggle_equip(equip)
+
+                for equip_result in equip_results:
+                    equipped = equip_result.get('equipped')
+                    dequipped = equip_result.get('dequipped')
+
+                    if equipped:
+                        message_log.add_message(Message('You equipped the {0}.'.format(equipped.name)))
+
+                    if dequipped:
+                        message_log.add_message(Message('You removed the {0}.'.format(dequipped.name)))
+
+                game_state = GameStates.ENEMY_TURN
 
 
         if game_state == GameStates.ENEMY_TURN:

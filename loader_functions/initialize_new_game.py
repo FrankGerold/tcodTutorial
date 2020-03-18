@@ -15,6 +15,8 @@ from render_functions import RenderOrder
 
 from components.level import Level
 
+from components.equipment import Equipment
+
 
 def get_constants():
 
@@ -76,11 +78,11 @@ def get_game_variables(constants):
     fighter_component = Fighter(hp=100, defense=1, power=4)
     inventory_component = Inventory(16)
     level_component = Level()
+    equipment_component = Equipment()
 
-
-    player = Entity(int(constants['screen_width'] / 2), int(constants['screen_height'] / 2), '@', tcod.red, 'Player',
-                    blocks=True, fighter=fighter_component, render_order=RenderOrder.ACTOR,
-                    inventory=inventory_component, level=level_component)
+    player = Entity(int(constants['screen_width'] / 2), int(constants['screen_height'] / 2), '@', tcod.red,
+                    'Player', blocks=True, fighter=fighter_component, render_order=RenderOrder.ACTOR,
+                    inventory=inventory_component, level=level_component, equipment=equipment_component)
     entities = [player]
 
     game_map = GameMap(constants['map_width'], constants['map_height'])
