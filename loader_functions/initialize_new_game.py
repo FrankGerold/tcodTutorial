@@ -37,9 +37,6 @@ def get_constants():
     room_min_size = 6
     max_rooms = 30
 
-    max_monsters_per_room = 3
-    max_items_per_room = 5
-
     fov_algorithm = 0
     fov_light_walls = True
     fov_radius = 10
@@ -66,8 +63,6 @@ def get_constants():
         'room_max_size': room_max_size,
         'room_min_size': room_min_size,
         'max_rooms': max_rooms,
-        'max_monsters_per_room': max_monsters_per_room,
-        'max_items_per_room': max_items_per_room,
         'fov_algorithm': fov_algorithm,
         'fov_light_walls': fov_light_walls,
         'fov_radius': fov_radius,
@@ -78,7 +73,7 @@ def get_constants():
 
 def get_game_variables(constants):
 
-    fighter_component = Fighter(hp=20, defense=2, power=5)
+    fighter_component = Fighter(hp=100, defense=1, power=4)
     inventory_component = Inventory(16)
     level_component = Level()
 
@@ -91,9 +86,7 @@ def get_game_variables(constants):
     game_map = GameMap(constants['map_width'], constants['map_height'])
     game_map.make_map(constants['max_rooms'], constants['room_min_size'],
                       constants['room_max_size'], constants['map_width'],
-                      constants['map_height'], player, entities,
-                      constants['max_monsters_per_room'],
-                      constants['max_items_per_room'])
+                      constants['map_height'], player, entities,)
 
     message_log = MessageLog(constants['message_x'], constants['message_width'], constants['message_height'])
 
