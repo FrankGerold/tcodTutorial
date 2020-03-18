@@ -14,6 +14,12 @@ def handle_keys(key, game_state):
     elif game_state == GameStates.TARGETING:
         return handle_targeting_keys(key)
 
+    elif game_state == GameStates.LEVEL_UP:
+        return handle_level_up_menu(key)
+
+    elif game_state == GameStates.CHARACTER_SHEET:
+        return  handle_char_sheet(key)
+
     return {}
 
 def handle_player_keys(key):
@@ -44,6 +50,10 @@ def handle_player_keys(key):
     elif key_char == 'n':
         return {'move': (1, 1)}
 
+    elif key_char == 'z':
+        return {'wait': True}
+
+
     if key_char == 'g':
         return {'pickup': True}
 
@@ -55,6 +65,10 @@ def handle_player_keys(key):
 
     elif key.vk == tcod.KEY_ENTER:
         return {'take_stairs': True}
+
+    elif key_char == 'c':
+        return {'show_character_sheet': True}
+
 
     if key.vk == tcod.KEY_ENTER and key.lalt:
         # Alt + Enter toggles full screen
@@ -133,6 +147,26 @@ def handle_main_menu(key):
         return {'new_game': True}
 
     if key_char == 'c' or key.vk == tcod.KEY_ESCAPE:
+        return {'exit': True}
+
+    return {}
+
+def handle_level_up_menu(key):
+    if key:
+        key_char = chr(key.c)
+
+        if key_char == 'a':
+            return {'level_up': 'hp'}
+        if key_char == 'b':
+            return {'level_up': 'str'}
+        if key_char == 'c':
+            return {'level_up': 'def'}
+
+    return {}
+
+def handle_char_sheet(key):
+    if key.vk == tcod.KEY_ESCAPE:
+        # exit menu
         return {'exit': True}
 
     return {}

@@ -1,8 +1,13 @@
 import tcod
+
 from enum import Enum, auto
+
 from game_messages import Message
+
 from game_states import GameStates
-from menus import inventory_menu
+
+from menus import inventory_menu, level_up_menu, character_sheet
+
 
 class RenderOrder(Enum):
     STAIRS = auto()
@@ -32,7 +37,7 @@ def render_bar(panel, x, y, total_width, name, value, maximum, bar_color, back_c
 
 def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_width, screen_height, colors, panel, bar_width, panel_height, panel_y, message_log, mouse, game_state):
     if fov_recompute:
-    #Draw the tiles in the map
+    # Draw the tiles in the map
         for y in range(game_map.height):
             for x in range(game_map.width):
                 visible = tcod.map_is_in_fov(fov_map, x, y)
@@ -51,7 +56,7 @@ def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_w
                     else:
                         tcod.console_set_char_background(con, x, y, colors.get('dark_ground'), tcod.BKGND_SET)
 
-    #Draw all entities on list
+    # Draw all entities on list
     entities_in_render_order = sorted(entities, key=lambda x: x.render_order.value)
     for entity in entities_in_render_order:
         draw_entity(con, entity, fov_map, game_map)
@@ -64,7 +69,7 @@ def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_w
     tcod.console_set_default_background(panel, tcod.black)
     tcod.console_clear(panel)
 
-    #Print game messages
+    # Print game messages
     y = 1
     for message in message_log.messages:
         tcod.console_set_default_foreground(panel, message.color)
@@ -87,6 +92,12 @@ def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_w
         else:
             inventory_title = 'Press the key next to an item to drop it, or Esc to cancel.\n'
         inventory_menu(con, inventory_title, player.inventory, 50, screen_width, screen_height)
+
+    elif game_state == GameStates.LEVEL_UP:
+        level_up_menu(con, 'You Leveled Up! Choose a stat to raise:', player, 40, screen_width, screen_height)
+
+    elif game_state == GameStates.CHARACTER_SHEET:
+        character_sheet(player, 30, 10, screen_width, screen_height)
 
 def clear_all(con, entities):
     for entity in entities:

@@ -122,6 +122,9 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
         inventory_index = action.get('inventory_index')
         drop_inventory = action.get('drop_inventory')
         take_stairs = action.get('take_stairs')
+        level_up = action.get('level_up')
+        show_char_sheet = action.get('show_character_sheet')
+        wait = action.get('wait')
 
         left_click = mouse_action.get('left_click')
         right_click = mouse_action.get('right_click')
@@ -147,6 +150,9 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                     fov_recompute = True
 
                 game_state = GameStates.ENEMY_TURN
+
+        elif wait:
+            game_state = GameStates.ENEMY_TURN
 
         elif pickup and game_state == GameStates.PLAYER_TURN:
             for entity in entities:
@@ -186,6 +192,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
             item_dropped = player_turn_result.get('item_dropped')
             targeting = player_turn_result.get('targeting')
             targeting_cancelled = player_turn_result.get('targeting_cancelled')
+            xp = player_turn_result.get('xp')
 
             if message:
                 message_log.add_message(message)
@@ -222,6 +229,16 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                 game_state = previous_game_state
 
                 message_log.add_message(Message('Target Cancelled'))
+            if xp:
+                leveled_up = player.level.add_xp(xp)
+                message_log.add_message(Message('You gain {0} experience.'.format(xp)))
+
+                if leveled_up:
+                    message_log.add_message(Message('You feel stornget! You have reached level {0}!'.format(player.level.current_level), tcod.yellow))
+                    previous_game_state = game_state
+                    game_state = GameStates.LEVEL_UP
+
+
 
         if game_state == GameStates.ENEMY_TURN:
             for entity in entities:
@@ -269,13 +286,15 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                 player_turn_results.append({'targeting_cancelled': True})
 
         if exit:
-            if game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY):
+            if game_state in (GameStates.SHOW_INVENTORY, GameStates.DROP_INVENTORY, GameStates.CHARACTER_SHEET):
                 game_state = previous_game_state
 
             elif game_state == GameStates.TARGETING:
                 player_turn_results.append({'targeting_cancelled': True})
 
             else:
+                save_game(player, entities, game_map, message_log, game_state)
+
                 return True
 
         if fullscreen:
@@ -292,6 +311,23 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                     break
                 else:
                     message_log.add_message(Message('No stairs here.', tcod.yellow))
+
+        if level_up:
+            if level_up == 'hp':
+                player.fighter.max_hp += 20
+                player.fighter.hp += 20
+
+            elif level_up == 'str':
+                player.fighter.power += 1
+
+            elif level_up == 'def':
+                player.fighter.defense += 1
+
+            game_state = previous_game_state
+
+        if show_char_sheet:
+            previous_game_state = game_state
+            game_state = GameStates.CHARACTER_SHEET
 
 
 if __name__ == '__main__':
