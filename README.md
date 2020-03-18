@@ -1,5 +1,5 @@
 # tcodTutorial
-Walking through @TStand90's python3 roguelike tutorial for 7DRL2020
+Walking through @TStand90's python3 roguelike tutorial for 7DRL2020 (Ended up being a Seven-TEEN-Day RogueLike)
 
 https://github.com/TStand90/roguelike-tutorials-website
 
