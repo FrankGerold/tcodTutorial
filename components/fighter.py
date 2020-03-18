@@ -9,32 +9,32 @@ class Fighter:
         self.base_power = power
         self.xp = xp
 
-        @property
-        def max_hp(self):
-            if self.owner and self.owner.equipment:
-                bonus = self.owner.equipment.hp_bonus
-            else:
-                bonus = 0
+    @property
+    def max_hp(self):
+        if self.owner and self.owner.equipment:
+            bonus = self.owner.equipment.hp_bonus
+        else:
+            bonus = 0
 
-            return self.base_max_hp + bonus
+        return self.base_max_hp + bonus
 
-        @property
-        def power(self):
-            if self.owner and self.owner.equipment:
-                bonus = self.owner.equipment.power_bonus
-            else:
-                bonus = 0
+    @property
+    def power(self):
+        if self.owner and self.owner.equipment:
+            bonus = self.owner.equipment.power_bonus
+        else:
+            bonus = 0
 
-            return self.base_power + bonus
+        return self.base_power + bonus
 
-        @property
-        def defense(self):
-            if self.owner and self.owner.equipment:
-                bonus = self.owner.equipment.defense_bonus
-            else:
-                bonus = 0
+    @property
+    def defense(self):
+        if self.owner and self.owner.equipment:
+            bonus = self.owner.equipment.defense_bonus
+        else:
+            bonus = 0
 
-            return self.base_defense + bonus
+        return self.base_defense + bonus
 
     def take_damage(self, amount):
         results = []

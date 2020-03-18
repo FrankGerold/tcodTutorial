@@ -26,6 +26,10 @@ from components.stairs import Stairs
 
 from random_utilities import random_choice_from_dict, from_dungeon_level
 
+from components.equipment import EquipmentSlots
+
+from components.equippable import Equippable
+
 
 class GameMap:
     def __init__(self, width, height, dungeon_level=1):
@@ -141,7 +145,13 @@ class GameMap:
             'healing_potion': 35,
             'lightning_scroll': from_dungeon_level([[25, 4]], self.dungeon_level),
             'fireball_scroll': from_dungeon_level([[25, 6]], self.dungeon_level),
-            'confusion_scroll': from_dungeon_level([[10, 2]], self.dungeon_level)
+            'confusion_scroll': from_dungeon_level([[10, 2]], self.dungeon_level),
+
+            'sword': from_dungeon_level([[5, 4]], self.dungeon_level),
+            'shield': from_dungeon_level([[15, 8]], self.dungeon_level),
+            'breastplate': from_dungeon_level([[10, 6]], self.dungeon_level),
+            'pantaloons': from_dungeon_level([[8, 5]], self.dungeon_level),
+            'helmet': from_dungeon_level([[4, 3]], self.dungeon_level)
         }
 
         for i in range(number_of_monsters):
@@ -153,7 +163,6 @@ class GameMap:
 
                 monster_choice = random_choice_from_dict(monster_chances)
 
-                # 80% cnance for orc
                 if monster_choice == 'orc':
                     fighter_component: Fighter = Fighter(hp=20, defense=0, power=4, xp=35)
 
@@ -163,7 +172,7 @@ class GameMap:
                     monster = Entity(x, y, 'o', tcod.desaturated_green, 'Orc', blocks=True,
                                      fighter=fighter_component, ai=ai_component,
                                      render_order=RenderOrder.ACTOR, inventory=inventory_component)
-                # 20% chance for troll
+
                 elif monster_choice == 'troll':
                     fighter_component = Fighter(hp=30, defense=2, power=8, xp=100)
                     ai_component = BasicMonster()
@@ -192,6 +201,7 @@ class GameMap:
                     item_component = Item(use_function=fireball, damage=25, radius=3, targeting=True,
                                           targeting_message=Message('Click a target tile to cast a Fireball\
                                           , or right-click to cancel.', tcod.light_cyan))
+
                     item = Entity(x, y, '#', tcod.orange, 'Fireball Scroll', render_order=RenderOrder.ITEM,
                                   item=item_component)
 
@@ -199,13 +209,48 @@ class GameMap:
                     item_component = Item(use_function=confusion, targeting=True,
                                           targeting_message=Message('Click an enemy to confuse them!\
                                            Right-click/escape to cancel.', tcod.cyan))
+
                     item = Entity(x, y, '#', tcod.light_pink, 'Confusion Scroll',
                                   render_order=RenderOrder.ITEM, item=item_component)
 
                 elif item_choice == 'lightning_scroll':
                     item_component = Item(use_function=lightning, damage=40, maximum_range=5)
+
                     item = Entity(x, y, '#', tcod.yellow, 'Lightning Scroll', render_order=RenderOrder.ITEM,
                                   item=item_component)
+
+                elif item_choice == 'sword':
+                    equippable_component = Equippable(EquipmentSlots.MAIN_HAND, power_bonus=3)
+
+                    item = Entity(x, y, '/', tcod.sky, 'Greatsword', render_order=RenderOrder.ITEM,
+                                  equippable=equippable_component)
+
+                elif item_choice == 'shield':
+                    equippable_component = Equippable(EquipmentSlots.OFF_HAND, defense_bonus=3)
+
+                    item = Entity(x, y, '[', tcod.darker_orange, 'Kite Shield', render_order=RenderOrder.ITEM,
+                                  equippable=equippable_component)
+
+                elif item_choice == 'breastplate':
+                    equippable_component = Equippable(EquipmentSlots.MAIN_HAND, hp_bonus=3)
+
+                    item = Entity(x, y, 'M', tcod.dark_azure, 'Plate Mail Armor',
+                                  render_order=RenderOrder.ITEM,
+                                  equippable=equippable_component)
+
+                elif item_choice == 'helmet':
+                    equippable_component = Equippable(EquipmentSlots.MAIN_HAND, defense_bonus=2)
+
+                    item = Entity(x, y, '0', tcod.dark_gray, 'Bucket Helmet',
+                                  render_order=RenderOrder.ITEM,
+                                  equippable=equippable_component)
+
+                elif item_choice == 'pantaloons':
+                    equippable_component = Equippable(EquipmentSlots.MAIN_HAND, hp_bonus=2, power_bonus=2)
+
+                    item = Entity(x, y, 'n', tcod.dark_gray, 'Harlequin Pantaloons',
+                                  render_order=RenderOrder.ITEM,
+                                  equippable=equippable_component)
 
                 entities.append(item)
 
@@ -225,6 +270,6 @@ class GameMap:
 
         player.fighter.heal(player.fighter.max_hp // 2)
 
-        message_log.add_message(Message('You takwe a moment to rest and recover your strength...', tcod.yellow))
+        message_log.add_message(Message('You take a moment to rest and recover your strength...', tcod.yellow))
 
         return entities
