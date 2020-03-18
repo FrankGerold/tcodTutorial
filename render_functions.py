@@ -5,6 +5,7 @@ from game_states import GameStates
 from menus import inventory_menu
 
 class RenderOrder(Enum):
+    STAIRS = auto()
     CORPSE = auto()
     ITEM = auto()
     ACTOR = auto()
@@ -53,7 +54,7 @@ def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_w
     #Draw all entities on list
     entities_in_render_order = sorted(entities, key=lambda x: x.render_order.value)
     for entity in entities_in_render_order:
-        draw_entity(con, entity, fov_map)
+        draw_entity(con, entity, fov_map, game_map)
 
     # tcod.console_set_default_foreground(con, tcod.white)
     # tcod.console_print_ex(con, 1, screen_height - 2, tcod.BKGND_NONE, tcod.LEFT, 'HP: {0:02}/{1:02}'.format(player.fighter.hp, player.fighter.max_hp))
@@ -72,6 +73,9 @@ def render_all(con, entities, player, game_map, fov_map, fov_recompute, screen_w
 
     render_bar(panel, 1, 1, bar_width, 'HP', player.fighter.hp, player.fighter.max_hp, tcod.light_red, tcod.darker_red)
 
+    tcod.console_print_ex(panel, 1, 3, tcod.BKGND_NONE, tcod.LEFT,
+                          'Dungeon Level: {0}'.format(game_map.dungeon_level))
+
     tcod.console_set_default_foreground(panel, tcod.light_gray)
     tcod.console_print_ex(panel, 1, 0, tcod.BKGND_NONE, tcod.LEFT, get_names_under_mouse(mouse, entities, fov_map))
 
@@ -88,8 +92,8 @@ def clear_all(con, entities):
     for entity in entities:
         clear_entity(con, entity)
 
-def draw_entity(con, entity, fov_map):
-    if tcod.map_is_in_fov(fov_map, entity.x, entity.y):
+def draw_entity(con, entity, fov_map, game_map):
+    if tcod.map_is_in_fov(fov_map, entity.x, entity.y) or (entity.stairs and game_map.tiles[entity.x][entity.y].explored):
         tcod.console_set_default_foreground(con, entity.color)
         tcod.console_put_char(con, entity.x, entity.y, entity.char, tcod.BKGND_NONE)
 

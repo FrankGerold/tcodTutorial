@@ -121,6 +121,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
         show_inventory = action.get('show_inventory')
         inventory_index = action.get('inventory_index')
         drop_inventory = action.get('drop_inventory')
+        take_stairs = action.get('take_stairs')
 
         left_click = mouse_action.get('left_click')
         right_click = mouse_action.get('right_click')
@@ -279,6 +280,18 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
 
         if fullscreen:
             tcod.console_set_fullscreen(not tcod.console_is_fullscreen())
+
+        if take_stairs and game_state == GameStates.PLAYER_TURN:
+            for entity in entities:
+                if entity.stairs and entity.x == player.x and entity.y == player.y:
+                    entities = game_map.next_floor(player, message_log, constants)
+                    fov_map = initialize_fov(game_map)
+                    fov_recompute = True
+                    tcod.console_clear(con)
+
+                    break
+                else:
+                    message_log.add_message(Message('No stairs here.', tcod.yellow))
 
 
 if __name__ == '__main__':

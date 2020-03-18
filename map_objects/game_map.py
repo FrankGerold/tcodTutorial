@@ -10,36 +10,31 @@ from components.item import Item
 from components.inventory import Inventory
 from item_functions import heal, lightning, fireball, confusion
 from game_messages import Message
+from components.stairs import Stairs
 
 class GameMap:
-    def __init__(self, width, height):
+    def __init__(self, width, height, dungeon_level=1):
         self.width = width
         self.height = height
         self.tiles = self.initialize_tiles()
+        self.dungeon_level = dungeon_level
 
     def initialize_tiles(self):
-        tiles = [[Tile(True) for y in range(self.height)] for x in range(self.width)]
+        tiles = [[Tile(True) for y in range(self.height)] for x in
+                 range(self.width)]
 
-        # tiles[30][22].blocked = True
-        # tiles[30][22].block_sight = True
-        # tiles[31][22].blocked = True
-        # tiles[31][22].block_sight = True
-        # tiles[32][22].blocked = True
-        # tiles[32][22].block_sight = True
 
         return tiles
 
-    def make_map(self, max_rooms, room_min_size, room_max_size, map_width, map_height, player, entities, max_monsters_per_room, max_items_per_room):
-        # #Create 2 rooms for demo
-        # room1 = Rect(20, 15, 10, 15)
-        # room2 = Rect(35, 15, 10, 15)
-        #
-        # self.create_room(room1)
-        # self.create_room(room2)
-        #
-        # self.create_h_tunnel(25, 40, 23)
+    def make_map(self, max_rooms, room_min_size, room_max_size, map_width, map_height,
+                 player, entities, max_monsters_per_room, max_items_per_room):
+
         rooms = []
         num_rooms = 0
+
+        center_of_last_room_x = None
+        center_of_last_room_y = None
+
         for r in range(max_rooms):
             #random width and height of room
             w = randint(room_min_size, room_max_size)
@@ -61,15 +56,14 @@ class GameMap:
                 #center coord of room
                 (new_x, new_y) = new_room.center()
 
+                center_of_last_room_x = new_x
+                center_of_last_room_y = new_y
+
                 if num_rooms == 0:
                     #if this is first room, player starts here
                     player.x = new_x
                     player.y = new_y
 
-                # #placing npc in seconfd room
-                # elif num_rooms == 1:
-                #     npc.x = new_x
-                #     npc.y = new_y
 
                 else:
                     # for all rooms after first, connect to previous room with tunnel
@@ -91,6 +85,11 @@ class GameMap:
                 #Finally, append new room to list
                 rooms.append(new_room)
                 num_rooms += 1
+
+        stairs_component = Stairs(self.dungeon_level + 1)
+        down_stairs = Entity(center_of_last_room_x, center_of_last_room_y, '>', tcod.white,
+                             'Stairs Down', render_order=RenderOrder.STAIRS, stairs=stairs_component)
+        entities.append(down_stairs)
 
     def create_room(self, room):
         #Walk through tiles in the given rectangle and make them passable
@@ -167,3 +166,16 @@ class GameMap:
         if self.tiles[x][y].blocked:
             return True
         return False
+
+    def next_floor(self, player, message_log, constants):
+        self.dungeon_level += 1
+        entities = [player]
+
+        self.tiles = self.initialize_tiles()
+        self.make_map(constants['max_rooms'], constants['room_min_size'], constants['room_max_size'], constants['map_width'], constants['map_height'],  player, entities, constants['max_monsters_per_room'], constants['max_items_per_room'])
+
+        player.fighter.heal(player.fighter.max_hp // 2)
+
+        message_log.add_message(Message('You takwe a moment to rest and recover your strength...', tcod.yellow))
+
+        return entities
