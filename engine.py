@@ -230,6 +230,7 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
                 game_state = previous_game_state
 
                 message_log.add_message(Message('Target Cancelled'))
+
             if xp:
                 leveled_up = player.level.add_xp(xp)
                 message_log.add_message(Message('You gain {0} experience.'.format(xp)))
@@ -330,14 +331,14 @@ def play_game(player, entities, game_map, message_log, game_state, con, panel, c
 
         if level_up:
             if level_up == 'hp':
-                player.fighter.max_hp += 20
+                player.fighter.base_max_hp += 20
                 player.fighter.hp += 20
 
             elif level_up == 'str':
-                player.fighter.power += 1
+                player.fighter.base_power += 1
 
             elif level_up == 'def':
-                player.fighter.defense += 1
+                player.fighter.base_defense += 1
 
             game_state = previous_game_state
 

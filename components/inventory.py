@@ -60,9 +60,9 @@ class Inventory:
     def drop_item(self, item):
         results = []
 
-        if self.owner.equipment.main_hand == item or self.owner.equipment.off_hand = item or
-        self.owner.equipment.head = item or self.owner.equipment.chest = item or
-        self.owner.equipment.legs = item:
+        if self.owner.equipment.main_hand == item or self.owner.equipment.off_hand == item \
+                or self.owner.equipment.head == item or self.owner.equipment.chest == item or \
+                self.owner.equipment.legs == item:
             self.owner.equipment.toggle_equip(item)
 
         item.x = self.owner.x
